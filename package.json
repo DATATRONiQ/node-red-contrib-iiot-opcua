@@ -105,7 +105,7 @@
     "nock": "^13.2.4",
     "node-red": "^2.2.2",
     "node-red-node-test-helper": "^0.2.7",
-    "read-pkg-up": "^7.0.1",
+    "read-pkg-up": "^9.1.0",
     "readdirp": "^2.2.1",
     "sinon": "^13.0.1",
     "ts-jest": "^27.1.4",
