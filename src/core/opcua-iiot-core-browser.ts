@@ -138,7 +138,7 @@ const crawl = (session: NodeCrawlerClientSession, nodeIdToCrawl: NodeIdLike, msg
     return new Error('NodeId To Crawl Not Valid')
   }
   const message = Object.assign({}, msg)
-  const crawler = coreBrowser.createCrawler(session)
+  const crawler = createCrawler(session)
   let crawlerResult: Todo[] = []
 
   const data = {
@@ -184,7 +184,7 @@ const crawl = (session: NodeCrawlerClientSession, nodeIdToCrawl: NodeIdLike, msg
  *
  */
 const crawlAddressSpaceItems = (session: NodeCrawlerClientSession, payload: Todo, sendWrapper: (result: Error | Todo) => void, timeout: number) => {
-  const crawler = coreBrowser.createCrawler(session)
+  const crawler = createCrawler(session)
 
   const crawlerPromises: Todo = []
   const resolvers: Todo = []
