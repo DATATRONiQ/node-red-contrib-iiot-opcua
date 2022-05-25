@@ -59,7 +59,7 @@ var testConnectorBrowseFlow = [
     'id': 'n3cf1',
     'type': 'OPCUA-IIoT-Browser',
     'connector': 'c1cf1',
-    'nodeId': 'ns=1;i=1234',
+    'nodeId': 'i=84',
     'name': 'TestBrowser',
     'justValue': true,
     'recursiveBrowse': false,
@@ -708,22 +708,30 @@ describe('OPC UA Connector node e2e Testing', function () {
     it('should get a message with payload after inject with browser', function (done) {
       helper.load(nodesToLoadForBrowser, testConnectorBrowseFlow, function () {
         let n2 = helper.getNode('n2cf1')
+        let n1 = helper.getNode('n1cf1')
         n2.on('input', function (msg) {
-          expect(msg.payload).toBe('testpayload')
-          setTimeout(done, 3000)
+          expect(msg.payload.value).toBe('testpayload')
+          done()
         })
+
+        n1.receive()
       })
     })
 
     it('should get a message with topic after browse', function (done) {
-      testConnectorBrowseFlow[3].port = 51963
-      testConnectorBrowseFlow[5].endpoint = 'opc.tcp://localhost:51963/'
+      // testConnectorBrowseFlow[3].port = 51963
+      // testConnectorBrowseFlow[5].endpoint = 'opc.tcp://localhost:51963/'
       helper.load(nodesToLoadForBrowser, testConnectorBrowseFlow, function () {
         let n5 = helper.getNode('n5cf1')
+        let n1 = helper.getNode('n1cf1')
         n5.on('input', function (msg) {
           expect(msg.topic).toBe('TestTopicBrowse')
           done()
         })
+        const receive = () => {
+          n1.receive({topic: 'TestTopicBrowse'})
+        }
+        setTimeout(receive, 5000)
       })
     })
 
@@ -744,7 +752,8 @@ describe('OPC UA Connector node e2e Testing', function () {
         let n5 = helper.getNode('n5cf1')
         n5.on('input', function (msg) {
           expect(msg.payload.rootNodeId).toBe('ns=1;i=1234')
-          expect(msg.payload.browserResults).toMatchObject([ { nodeId: 'ns=1;s=Pressure',
+          expect(msg.payload.browserResults).toMatchObject([
+            { nodeId: 'ns=1;s=Pressure',
             browseName: '1:Pressure',
             displayName: 'locale=null text=Pressure',
             nodeClass: 'Variable',
