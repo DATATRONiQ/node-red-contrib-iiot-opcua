@@ -641,7 +641,7 @@ var testBrowserResponseResultFilterFlow = [
   }
 ]
 
-const trigger = (node) => {
+export const trigger = (node) => {
   node.receive({topic: 'TestTopic', payload: {value: 24}})
 }
 

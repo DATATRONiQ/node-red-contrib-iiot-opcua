@@ -33,7 +33,7 @@ import {
   ClientSession,
   DataType,
   DataValue,
-  DataValueOptions,
+  DataValueOptions, NodeClass,
   NodeId,
   NodeIdType,
   OPCUAClient,
@@ -958,8 +958,8 @@ export function initCoreServerNode() {
   }
 }
 
-export function getItemFilterValueWithElement(item: Todo, element: Todo) {
-  let filterValue = null
+export function getItemFilterValueWithElement(item: Todo, element: Todo): string | Record<string, any> {
+  let filterValue = ''
 
   switch (element.name) {
     case 'browseName':
@@ -977,6 +977,9 @@ export function getItemFilterValueWithElement(item: Todo, element: Todo) {
         filterValue = item[element.name]
       }
       break
+    case 'nodeClass':
+      filterValue = NodeClass[item['nodeClass']]
+      break
     default:
       filterValue = item[element.name]
   }
@@ -991,25 +994,27 @@ export function handleErrorInsideNode(node: Todo, err: Error) {
   }
 }
 
-export function checkCrawlerItemIsNotToFilter(node: Todo, item: Todo, element: Todo, result: Todo) {
+export function checkCrawlerItemIsNotToFilter(node: Todo, item: Todo, element: Todo, result: Todo): number {
   try {
     let filterValue = getItemFilterValueWithElement(item, element)
 
-    if (filterValue && filterValue.key && filterValue.key.match) {
-      if (filterValue.key.match(element.value)) {
-        result &= 0
+
+
+    if (filterValue && typeof filterValue !== "string" && filterValue.key && filterValue.key.match) {
+      if (!filterValue.key.match(element.value)) {
+        result = 0
       }
     } else {
       if (filterValue && filterValue.match) {
-        if (filterValue.match(element.value)) {
-          result &= 0
+        if (!filterValue.match(element.value)) {
+          result = 0
         }
       } else {
         if (filterValue && filterValue.toString) {
           filterValue = filterValue.toString()
           if (filterValue && filterValue.match) {
-            if (filterValue.match(element.value)) {
-              result &= 0
+            if (!filterValue.match(element.value)) {
+              result = 0
             }
           }
         }
@@ -1027,7 +1032,7 @@ export function checkResponseItemIsNotToFilter(node: Node, item: Todo, element: 
     let filterValue = getItemFilterValueWithElement(item, element)
 
     if (filterValue) {
-      if (filterValue.key && filterValue.key.match) {
+      if (typeof filterValue !== 'string' && filterValue.key && filterValue.key.match) {
         result &= filterValue.key.match(element.value) !== null ? 1 : 0
       } else {
         if (filterValue.match) {
@@ -1051,7 +1056,7 @@ export function checkResponseItemIsNotToFilter(node: Node, item: Todo, element: 
   return result
 }
 
-export function checkItemForUnsetState(node: Todo, item: Todo) {
+export function checkItemForUnsetState(node: Todo, item: Todo): number {
   let result = 1
 
   if (node.activateUnsetFilter) {
