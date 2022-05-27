@@ -146,7 +146,7 @@ var testReadHistoryRangeFlow = [
     ],
     'wires': [
       [
-        'ed779eb9.7b89'
+        'readNode'
       ]
     ]
   },
@@ -171,12 +171,12 @@ var testReadHistoryRangeFlow = [
     ],
     'wires': [
       [
-        'cb36ad39.f475b8'
+        'functionNode'
       ]
     ]
   },
   {
-    'id': 'cb36ad39.f475b8',
+    'id': 'functionNode',
     'type': 'function',
     'name': '',
     'func': 'let startDate = new Date()\nlet historyStart = new Date()\nhistoryStart.setDate(startDate.getDate() - 2)\nlet historyEnd = new Date()\n\nmsg.payload.historyStart = historyStart\nmsg.payload.historyEnd = historyEnd\n\nreturn msg;',
@@ -184,12 +184,12 @@ var testReadHistoryRangeFlow = [
     'noerr': 0,
     'wires': [
       [
-        'ed779eb9.7b89'
+        'readNode'
       ]
     ]
   },
   {
-    'id': 'ed779eb9.7b89',
+    'id': 'readNode',
     'type': 'OPCUA-IIoT-Read',
     'attributeId': '130',
     'maxAge': 1,
@@ -203,13 +203,13 @@ var testReadHistoryRangeFlow = [
     'historyDays': '',
     'wires': [
       [
-        '37d1d8fb.5f4908',
-        'dd2554f4.e88bd8'
+        'responseNode',
+        'responseNode2'
       ]
     ]
   },
   {
-    'id': '37d1d8fb.5f4908',
+    'id': 'responseNode',
     'type': 'OPCUA-IIoT-Response',
     'name': '',
     'compressStructure': false,
@@ -223,7 +223,7 @@ var testReadHistoryRangeFlow = [
   },
   {id: 'nr1h', type: 'helper'},
   {
-    'id': 'dd2554f4.e88bd8',
+    'id': 'responseNode2',
     'type': 'OPCUA-IIoT-Response',
     'name': '',
     'compressStructure': true,
@@ -396,6 +396,10 @@ var testReadFlexServerFlow = [
   }
 ]
 
+const receive = (node) => {
+  node.receive({payload:{value: "test"}})
+}
+
 describe('OPC UA Read node e2e Testing', function () {
   beforeEach(function (done) {
     helper.startServer(function () {
@@ -420,15 +424,18 @@ describe('OPC UA Read node e2e Testing', function () {
       testReadFlow[2].attributeId = 0
       helper.load(readNodesToLoad, testReadFlow, function () {
         let n2 = helper.getNode('n2rdf1')
+        let n1 = helper.getNode('n1rdf1')
         n2.on('input', function (msg) {
-          expect(msg.payload).toBe('testpayload')
-          expect(msg.addressSpaceItems).toMatchObject([{
+          expect(msg.payload.value).toBe('testpayload')
+          expect(msg.payload.addressSpaceItems).toMatchObject([{
             'name': 'ServerStatus',
             'nodeId': 'ns=0;i=2256',
             'datatypeName': ''
           }])
-          setTimeout(done, 2000)
+          done()
         })
+
+        setTimeout(receive, 5000, n1)
       })
     })
 
@@ -436,12 +443,15 @@ describe('OPC UA Read node e2e Testing', function () {
       testReadFlow[2].attributeId = 0
       helper.load(readNodesToLoad, testReadFlow, function () {
         let n4 = helper.getNode('n4rdf1')
+        let n1 = helper.getNode('n1rdf1')
         n4.on('input', function (msg) {
-          expect(msg.payload[0].nodeId).toBe('ns=0;i=2256')
+          expect(msg.payload.value[0].nodeId).toBe('ns=0;i=2256')
           expect(msg.topic).toBe('TestTopicRead')
-          expect(msg.attributeId).toBe(0)
+          expect(msg.payload.attributeId).toBe(0)
           done()
         })
+
+        setTimeout(receive, 5000, n1)
       })
     })
 
@@ -449,12 +459,15 @@ describe('OPC UA Read node e2e Testing', function () {
       testReadFlow[2].attributeId = 0
       helper.load(readNodesToLoad, testReadFlow, function () {
         let n6 = helper.getNode('n6rdf1')
+        let n1 = helper.getNode('n1rdf1')
         n6.on('input', function (msg) {
-          expect(msg.entryStatus).toMatchObject([1, 0, 0])
+          expect(msg.payload.entryStatus).toMatchObject({good: 1, bad: 0, other: 0})
           expect(msg.topic).toBe('TestTopicRead')
-          expect(msg.attributeId).toBe(0)
+          expect(msg.payload.attributeId).toBe(0)
           done()
         })
+
+        setTimeout(receive, 5000, n1)
       })
     })
 
@@ -462,12 +475,15 @@ describe('OPC UA Read node e2e Testing', function () {
       testReadFlow[2].attributeId = 0
       helper.load(readNodesToLoadWithFlexServer, testReadFlexServerFlow, function () {
         let n6 = helper.getNode('n6rdf3')
+        let n1 = helper.getNode('n1rdf3')
         n6.on('input', function (msg) {
-          expect(msg.entryStatus).toMatchObject([1, 0, 0])
+          expect(msg.payload.entryStatus).toMatchObject({good: 1, bad: 0, other: 0})
+          expect(msg.payload.attributeId).toBe(0)
           expect(msg.topic).toBe('TestTopicRead')
-          expect(msg.attributeId).toBe(0)
           done()
         })
+
+        setTimeout(receive, 5000, n1)
       })
     })
 
@@ -475,15 +491,18 @@ describe('OPC UA Read node e2e Testing', function () {
       testReadFlow[2].attributeId = 1
       helper.load(readNodesToLoad, testReadFlow, function () {
         let n2 = helper.getNode('n2rdf1')
+        let n1 = helper.getNode('n1rdf1')
         n2.on('input', function (msg) {
-          expect(msg.payload).toBe('testpayload')
-          expect(msg.addressSpaceItems).toMatchObject([{
+          expect(msg.payload.value).toBe('testpayload')
+          expect(msg.payload.addressSpaceItems).toMatchObject([{
             'name': 'ServerStatus',
             'nodeId': 'ns=0;i=2256',
             'datatypeName': ''
           }])
-          setTimeout(done, 2000)
+          done()
         })
+
+        setTimeout(receive, 5000, n1)
       })
     })
 
@@ -491,12 +510,15 @@ describe('OPC UA Read node e2e Testing', function () {
       testReadFlow[2].attributeId = 1
       helper.load(readNodesToLoad, testReadFlow, function () {
         let n4 = helper.getNode('n4rdf1')
+        let n1 = helper.getNode('n1rdf1')
         n4.on('input', function (msg) {
-          expect(msg.payload[0].value).toBeDefined()
+          expect(msg.payload.value[0]).toBeDefined()
           expect(msg.topic).toBe('TestTopicRead')
-          expect(msg.attributeId).toBe(1)
+          expect(msg.payload.attributeId).toBe(1)
           done()
         })
+
+        setTimeout(receive, 5000, n1)
       })
     })
 
@@ -504,12 +526,15 @@ describe('OPC UA Read node e2e Testing', function () {
       testReadFlow[2].attributeId = 1
       helper.load(readNodesToLoad, testReadFlow, function () {
         let n6 = helper.getNode('n6rdf1')
+        let n1 = helper.getNode('n1rdf1')
         n6.on('input', function (msg) {
-          expect(msg.entryStatus).toMatchObject([1, 0, 0])
+          expect(msg.payload.entryStatus).toMatchObject({good: 1, bad: 0, other: 0})
+          expect(msg.payload.attributeId).toBe(1)
           expect(msg.topic).toBe('TestTopicRead')
-          expect(msg.attributeId).toBe(1)
           done()
         })
+
+        setTimeout(receive, 5000, n1)
       })
     })
 
@@ -517,15 +542,18 @@ describe('OPC UA Read node e2e Testing', function () {
       testReadFlow[2].attributeId = 2
       helper.load(readNodesToLoad, testReadFlow, function () {
         let n2 = helper.getNode('n2rdf1')
+        let n1 = helper.getNode('n1rdf1')
         n2.on('input', function (msg) {
-          expect(msg.payload).toBe('testpayload')
-          expect(msg.addressSpaceItems).toMatchObject([{
+          expect(msg.payload.value).toBe('testpayload')
+          expect(msg.payload.addressSpaceItems).toMatchObject([{
             'name': 'ServerStatus',
             'nodeId': 'ns=0;i=2256',
             'datatypeName': ''
           }])
-          setTimeout(done, 2000)
+          done()
         })
+
+        setTimeout(receive, 5000, n1)
       })
     })
 
@@ -533,12 +561,15 @@ describe('OPC UA Read node e2e Testing', function () {
       testReadFlow[2].attributeId = 2
       helper.load(readNodesToLoad, testReadFlow, function () {
         let n4 = helper.getNode('n4rdf1')
+        let n1 = helper.getNode('n1rdf1')
         n4.on('input', function (msg) {
-          expect(msg.payload[0].value).toBeDefined()
+          expect(msg.payload.value[0].value).toBeDefined()
           expect(msg.topic).toBe('TestTopicRead')
-          expect(msg.attributeId).toBe(2)
+          expect(msg.payload.attributeId).toBe(2)
           done()
         })
+
+        setTimeout(receive, 5000, n1)
       })
     })
 
@@ -546,12 +577,15 @@ describe('OPC UA Read node e2e Testing', function () {
       testReadFlow[2].attributeId = 2
       helper.load(readNodesToLoad, testReadFlow, function () {
         let n6 = helper.getNode('n6rdf1')
+        let n1 = helper.getNode('n1rdf1')
         n6.on('input', function (msg) {
-          expect(msg.entryStatus).toMatchObject([1, 0, 0])
+          expect(msg.payload.entryStatus).toMatchObject({good: 1, bad: 0, other: 0})
           expect(msg.topic).toBe('TestTopicRead')
-          expect(msg.attributeId).toBe(2)
+          expect(msg.payload.attributeId).toBe(2)
           done()
         })
+
+        setTimeout(receive, 5000, n1)
       })
     })
 
@@ -559,15 +593,18 @@ describe('OPC UA Read node e2e Testing', function () {
       testReadFlow[2].attributeId = 3
       helper.load(readNodesToLoad, testReadFlow, function () {
         let n2 = helper.getNode('n2rdf1')
+        let n1 = helper.getNode('n1rdf1')
         n2.on('input', function (msg) {
-          expect(msg.payload).toBe('testpayload')
-          expect(msg.addressSpaceItems).toMatchObject([{
+          expect(msg.payload.value).toBe('testpayload')
+          expect(msg.payload.addressSpaceItems).toMatchObject([{
             'name': 'ServerStatus',
             'nodeId': 'ns=0;i=2256',
             'datatypeName': ''
           }])
-          setTimeout(done, 2000)
+          done()
         })
+
+        setTimeout(receive, 5000, n1)
       })
     })
 
@@ -575,12 +612,15 @@ describe('OPC UA Read node e2e Testing', function () {
       testReadFlow[2].attributeId = 3
       helper.load(readNodesToLoad, testReadFlow, function () {
         let n4 = helper.getNode('n4rdf1')
+        let n1 = helper.getNode('n1rdf1')
         n4.on('input', function (msg) {
-          expect(msg.payload[0].value).toBeDefined()
+          expect(msg.payload.value[0].value).toBeDefined()
           expect(msg.topic).toBe('TestTopicRead')
-          expect(msg.attributeId).toBe(3)
-          setTimeout(done, 1000)
+          expect(msg.payload.attributeId).toBe(3)
+          done()
         })
+
+        setTimeout(receive, 5000, n1)
       })
     })
 
@@ -588,12 +628,15 @@ describe('OPC UA Read node e2e Testing', function () {
       testReadFlow[2].attributeId = 3
       helper.load(readNodesToLoad, testReadFlow, function () {
         let n6 = helper.getNode('n6rdf1')
+        let n1 = helper.getNode('n1rdf1')
         n6.on('input', function (msg) {
-          expect(msg.entryStatus).toMatchObject([1, 0, 0])
+          expect(msg.payload.entryStatus).toMatchObject({good: 1, bad: 0, other: 0})
           expect(msg.topic).toBe('TestTopicRead')
-          expect(msg.attributeId).toBe(3)
+          expect(msg.payload.attributeId).toBe(3)
           done()
         })
+
+        setTimeout(receive, 5000, n1)
       })
     })
 
@@ -601,15 +644,18 @@ describe('OPC UA Read node e2e Testing', function () {
       testReadFlow[2].attributeId = 4
       helper.load(readNodesToLoad, testReadFlow, function () {
         let n2 = helper.getNode('n2rdf1')
+        let n1 = helper.getNode('n1rdf1')
         n2.on('input', function (msg) {
-          expect(msg.payload).toBe('testpayload')
-          expect(msg.addressSpaceItems).toMatchObject([{
+          expect(msg.payload.value).toBe('testpayload')
+          expect(msg.payload.addressSpaceItems).toMatchObject([{
             'name': 'ServerStatus',
             'nodeId': 'ns=0;i=2256',
             'datatypeName': ''
           }])
-          setTimeout(done, 2000)
+          done()
         })
+
+        setTimeout(receive, 5000, n1)
       })
     })
 
@@ -617,12 +663,15 @@ describe('OPC UA Read node e2e Testing', function () {
       testReadFlow[2].attributeId = 4
       helper.load(readNodesToLoad, testReadFlow, function () {
         let n4 = helper.getNode('n4rdf1')
+        let n1 = helper.getNode('n1rdf1')
         n4.on('input', function (msg) {
-          expect(msg.payload[0].value).toBeDefined()
+          expect(msg.payload.value[0]).toBeDefined()
           expect(msg.topic).toBe('TestTopicRead')
-          expect(msg.attributeId).toBe(4)
+          expect(msg.payload.attributeId).toBe(4)
           done()
         })
+
+        setTimeout(receive, 5000, n1)
       })
     })
 
@@ -630,12 +679,15 @@ describe('OPC UA Read node e2e Testing', function () {
       testReadFlow[2].attributeId = 4
       helper.load(readNodesToLoad, testReadFlow, function () {
         let n6 = helper.getNode('n6rdf1')
+        let n1 = helper.getNode('n1rdf1')
         n6.on('input', function (msg) {
-          expect(msg.entryStatus).toMatchObject([1, 0, 0])
+          expect(msg.payload.entryStatus).toMatchObject({good: 1, bad: 0, other: 0})
           expect(msg.topic).toBe('TestTopicRead')
-          expect(msg.attributeId).toBe(4)
+          expect(msg.payload.attributeId).toBe(4)
           done()
         })
+
+        setTimeout(receive, 5000, n1)
       })
     })
 
@@ -643,15 +695,18 @@ describe('OPC UA Read node e2e Testing', function () {
       testReadFlow[2].attributeId = 13
       helper.load(readNodesToLoad, testReadFlow, function () {
         let n2 = helper.getNode('n2rdf1')
+        let n1 = helper.getNode('n1rdf1')
         n2.on('input', function (msg) {
-          expect(msg.payload).toBe('testpayload')
-          expect(msg.addressSpaceItems).toMatchObject([{
+          expect(msg.payload.value).toBe('testpayload')
+          expect(msg.payload.addressSpaceItems).toMatchObject([{
             'name': 'ServerStatus',
             'nodeId': 'ns=0;i=2256',
             'datatypeName': ''
           }])
-          setTimeout(done, 2000)
+          done()
         })
+
+        setTimeout(receive, 5000, n1)
       })
     })
 
@@ -659,12 +714,15 @@ describe('OPC UA Read node e2e Testing', function () {
       testReadFlow[2].attributeId = 13
       helper.load(readNodesToLoad, testReadFlow, function () {
         let n4 = helper.getNode('n4rdf1')
+        let n1 = helper.getNode('n1rdf1')
         n4.on('input', function (msg) {
-          expect(msg.payload[0].value).toBeDefined()
+          expect(msg.payload.value[0]).toBeDefined()
           expect(msg.topic).toBe('TestTopicRead')
-          expect(msg.attributeId).toBe(13)
+          expect(msg.payload.attributeId).toBe(13)
           done()
         })
+
+        setTimeout(receive, 5000, n1)
       })
     })
 
@@ -672,12 +730,15 @@ describe('OPC UA Read node e2e Testing', function () {
       testReadFlow[2].attributeId = 13
       helper.load(readNodesToLoad, testReadFlow, function () {
         let n6 = helper.getNode('n6rdf1')
+        let n1 = helper.getNode('n1rdf1')
         n6.on('input', function (msg) {
-          expect(msg.entryStatus).toMatchObject([1, 0, 0])
+          expect(msg.payload.entryStatus).toMatchObject({good: 1, bad: 0, other: 0})
           expect(msg.topic).toBe('TestTopicRead')
-          expect(msg.attributeId).toBe(13)
+          expect(msg.payload.attributeId).toBe(13)
           done()
         })
+
+        setTimeout(receive, 5000, n1)
       })
     })
 
@@ -685,15 +746,18 @@ describe('OPC UA Read node e2e Testing', function () {
       testReadFlow[2].attributeId = 130
       helper.load(readNodesToLoad, testReadFlow, function () {
         let n2 = helper.getNode('n2rdf1')
+        let n1 = helper.getNode('n1rdf1')
         n2.on('input', function (msg) {
-          expect(msg.payload).toBe('testpayload')
-          expect(msg.addressSpaceItems).toMatchObject([{
+          expect(msg.payload.value).toBe('testpayload')
+          expect(msg.payload.addressSpaceItems).toMatchObject([{
             'name': 'ServerStatus',
             'nodeId': 'ns=0;i=2256',
             'datatypeName': ''
           }])
-          setTimeout(done, 2000)
+          done()
         })
+
+        setTimeout(receive, 5000, n1)
       })
     })
 
@@ -701,14 +765,17 @@ describe('OPC UA Read node e2e Testing', function () {
       testReadFlow[2].attributeId = 130
       helper.load(readNodesToLoad, testReadFlow, function () {
         let n4 = helper.getNode('n4rdf1')
+        let n1 = helper.getNode('n1rdf1')
         n4.on('input', function (msg) {
           expect(msg.topic).toBe('TestTopicRead')
-          expect(msg.payload[0]).toBeDefined()
-          expect(msg.historyStart).toBeDefined()
-          expect(msg.historyEnd).toBeDefined()
-          expect(msg.attributeId).toBe(130)
+          expect(msg.payload.value[0]).toBeDefined()
+          expect(msg.payload.historyStart).toBeDefined()
+          expect(msg.payload.historyEnd).toBeDefined()
+          expect(msg.payload.attributeId).toBe(130)
           done()
         })
+
+        setTimeout(receive, 5000, n1)
       })
     })
 
@@ -716,43 +783,52 @@ describe('OPC UA Read node e2e Testing', function () {
       testReadFlow[2].attributeId = 130
       helper.load(readNodesToLoad, testReadFlow, function () {
         let n6 = helper.getNode('n6rdf1')
+        let n1 = helper.getNode('n1rdf1')
         n6.on('input', function (msg) {
-          expect(msg.entryStatus).toMatchObject([0, 1, 0])
+          expect(msg.payload.entryStatus).toMatchObject({good: 1, bad: 0, other: 0})
           expect(msg.topic).toBe('TestTopicRead')
-          expect(msg.readtype).toBe('HistoryValue')
-          expect(msg.historyStart).toBeDefined()
-          expect(msg.historyEnd).toBeDefined()
-          expect(msg.attributeId).toBe(130)
+          expect(msg.payload.readtype).toBe('HistoryValue')
+          expect(msg.payload.historyStart).toBeDefined()
+          expect(msg.payload.historyEnd).toBeDefined()
+          expect(msg.payload.attributeId).toBe(130)
           done()
         })
+
+        setTimeout(receive, 5000, n1)
       })
     })
 
     it('should have read with an injected time range results with response for attributeId History', function (done) {
+      jest.setTimeout(50000)
       helper.load(readNodesToLoad, testReadHistoryRangeFlow, function () {
         let msgCounter = 0
         let n1 = helper.getNode('nr1h')
+        let inject = helper.getNode('b6e5bc66.864128')
+        let inject2 = helper.getNode('5ab9594f.f9358')
         n1.on('input', function (msg) {
           msgCounter++
           if (msgCounter === 1) {
-            expect(msg.entryStatus).toMatchObject([1, 0, 0])
+            expect(msg.payload.entryStatus).toMatchObject({good: 1, bad: 0, other: 0})
             expect(msg.topic).toBe('TestTopicRead1')
-            expect(msg.readtype).toBe('HistoryValue')
-            expect(msg.historyStart).toBeDefined()
-            expect(msg.historyEnd).toBeDefined()
-            expect(msg.attributeId).toBe(130)
+            expect(msg.payload.readtype).toBe('HistoryValue')
+            expect(msg.payload.historyStart).toBeDefined()
+            expect(msg.payload.historyEnd).toBeDefined()
+            expect(msg.payload.attributeId).toBe(130)
           }
 
           if (msgCounter === 2) {
-            expect(msg.entryStatus).toMatchObject([1, 0, 0])
+            expect(msg.payload.entryStatus).toMatchObject({good: 1, bad: 0, other: 0})
             expect(msg.topic).toBe('TestTopicRead2')
-            expect(msg.readtype).toBe('HistoryValue')
-            expect(msg.historyStart).toBeDefined()
-            expect(msg.historyEnd).toBeDefined()
-            expect(msg.attributeId).toBe(130)
+            expect(msg.payload.readtype).toBe('HistoryValue')
+            expect(msg.payload.historyStart).toBeDefined()
+            expect(msg.payload.historyEnd).toBeDefined()
+            expect(msg.payload.attributeId).toBe(130)
             done()
           }
         })
+
+        setTimeout(receive, 5000, inject)
+        setTimeout(receive, 6000, inject2)
       })
     })
 
@@ -760,25 +836,29 @@ describe('OPC UA Read node e2e Testing', function () {
       helper.load(readNodesToLoad, testReadHistoryRangeFlow, function () {
         let msgCounter = 0
         let n2 = helper.getNode('nr2h')
+        let inject = helper.getNode('b6e5bc66.864128')
+        let inject2 = helper.getNode('5ab9594f.f9358')
         n2.on('input', function (msg) {
           msgCounter++
           if (msgCounter === 1) {
-            expect(msg.entryStatus).toBeUndefined()
+            expect(msg.payload.entryStatusText).toBeUndefined()
             expect(msg.topic).toBe('TestTopicRead1')
-            expect(msg.historyStart).toBeDefined()
-            expect(msg.historyEnd).toBeDefined()
-            expect(msg.attributeId).toBeUndefined()
+            expect(msg.payload.historyStart).toBeDefined()
+            expect(msg.payload.historyEnd).toBeDefined()
+            expect(msg.payload.attributeId).toBeUndefined()
           }
 
           if (msgCounter === 2) {
-            expect(msg.entryStatus).toBeUndefined()
+            expect(msg.payload.entryStatusText).toBeUndefined()
             expect(msg.topic).toBe('TestTopicRead2')
-            expect(msg.historyStart).toBeDefined()
-            expect(msg.historyEnd).toBeDefined()
-            expect(msg.attributeId).toBeUndefined()
+            expect(msg.payload.historyStart).toBeDefined()
+            expect(msg.payload.historyEnd).toBeDefined()
+            expect(msg.payload.attributeId).toBeUndefined()
             done()
           }
         })
+        setTimeout(receive, 5000, inject)
+        setTimeout(receive, 6000, inject2)
       })
     })
   })

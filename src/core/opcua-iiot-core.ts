@@ -623,7 +623,7 @@ export function buildNodesToWrite(msg: WriteMessage): WriteValueOptions[] {
 export function buildNodesToRead(payload: Todo) {
   logger.detailDebugLog('buildNodesToRead input: ' + JSON.stringify(payload))
 
-  let nodePayloadList = payload.nodesToRead || payload.nodesToWrite || (payload.value?.length ? payload.value : (payload.crawlerResults || payload.browserResults || payload.addressSpaceItems));
+  let nodePayloadList = payload.nodesToRead || payload.nodesToWrite || (Array.isArray(payload.value) ? payload.value : (payload.crawlerResults || payload.browserResults || payload.addressSpaceItems));
   if (nodePayloadList && nodePayloadList.length) {
     return nodePayloadList.map((item: Todo) => {
       return (item.nodeId || item).toString()

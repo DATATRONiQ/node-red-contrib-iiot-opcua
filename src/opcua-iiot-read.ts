@@ -103,7 +103,7 @@ module.exports = (RED: NodeAPI) => {
             /* istanbul ignore next */
             node.iiot.handleReadError(err, readResult.msg)
           }
-        }).catch(function (err: Error) {
+        }).catch((err: Error) => {
         /* istanbul ignore next */
         (isInitializedIIoTNode(node)) ? handleReadError(err, msg) : coreClient.internalDebugLog(err.message)
       })
