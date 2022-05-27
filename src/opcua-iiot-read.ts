@@ -198,14 +198,18 @@ module.exports = (RED: NodeAPI) => {
         payloadType: 'read'
       }
 
-      let dataValuesString = extractDataValueString(readResult)
-
-      payload = setMessageProperties(payload, readResult, dataValuesString)
+      let dataValues = extractDataValueString(readResult)
+      if (dataValues.results) {
+        const {results, ...rest} = dataValues;
+        payload.value = results
+        payload = {...payload, ...rest}
+      } else {
+        payload.value = dataValues
+      }
 
       if (!node.justValue) {
         payload = enhanceMessage(payload, readResult)
       }
-
       let message: NodeMessage = {
         ...readResult.msg,
         payload
@@ -215,28 +219,12 @@ module.exports = (RED: NodeAPI) => {
     }
 
     const extractDataValueString = function (readResult: Todo) {
-      let dataValuesString
       if (node.justValue) {
-        dataValuesString = JSON.stringify(readResult.results, null, 2)
+        return readResult
       } else {
-        dataValuesString = JSON.stringify(readResult, null, 2)
+        const {msg, ...restMessage} = readResult;
+        return restMessage
       }
-      return dataValuesString
-    }
-
-    const setMessageProperties = (payload: Todo, readResult: Todo, stringValue: Todo) => {
-      try {
-        RED.util.setMessageProperty(payload, 'value', JSON.parse(stringValue))
-      } /* istanbul ignore next */ catch (err: any) {
-        if (node.showErrors) {
-          this.warn('JSON not to parse from string for dataValues type ' + JSON.stringify(readResult, null, 2))
-          this.error(err, readResult.msg)
-        }
-
-        payload.value = stringValue
-        payload.error = err.message
-      }
-      return payload
     }
 
     const enhanceMessage = (payload: Todo, readResult: Todo) => {

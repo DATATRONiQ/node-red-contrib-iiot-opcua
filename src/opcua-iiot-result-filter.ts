@@ -106,6 +106,8 @@ module.exports = (RED: nodered.NodeAPI) => {
 
       const payload = msg.payload as FilterInputPayload & BrowserPayload
       const filtered = filterByType(payload)
+
+
       const value =
         node.justValue
           // if justValue, return the filtered value of the input message
@@ -116,7 +118,6 @@ module.exports = (RED: nodered.NodeAPI) => {
           : (filtered.value || filtered.crawlerResults || filtered.browserResults)
 
       const convertedValue = (this.fixedValue || this.withPrecision) ? convertAllResults(payload, value) : value;
-
       const {msg: msgKey, ...restPayload} = payload;
       const outputPayload = {
         ...restPayload,
@@ -133,7 +134,6 @@ module.exports = (RED: nodered.NodeAPI) => {
         _msgid: msg._msgid,
         topic: node.topic || msg.topic
       }
-
 
       this.send(outputMessage)
     })
@@ -289,12 +289,13 @@ module.exports = (RED: nodered.NodeAPI) => {
     const filterByReadType = (payload: ReadPayload) => {
       const value = payload.value;
 
-      if (Array.isArray(value))
+      if (Array.isArray(value)){
         return {
           value: value.filter((item) => {
-            return item.nodeId.toString().includes(this.nodeId)
+            return item.nodeId?.toString().includes(this.nodeId)
           })
         }
+      }
       else {
         this.error('wrong payload type');
         return payload
