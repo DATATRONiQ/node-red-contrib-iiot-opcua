@@ -17,8 +17,8 @@ jobs:
             git checkout $BRANCH
           done
       - run: |
-        git push --all origin
-        git push --tags origin
+          git push --all origin
+          git push --tags origin
   sync_issues:
     runs-on: ubuntu-latest
     steps:
