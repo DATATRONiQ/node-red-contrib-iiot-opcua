@@ -1,0 +1,25 @@
+name: "Sync BiancoRoyal/node-red-contrib-iiot-opcua to this repository"
+
+on:
+  schedule:
+    - cron: "0 0 * * *"
+
+jobs:
+  sync_branches:
+    runs-on: ubuntu-latest
+    steps:
+      - run: git remote add bianco https://github.com/BiancoRoyal/node-red-contrib-iiot-opcua.git
+      - run: git fetch bianco
+      - run: |
+          for BRANCH in $(git branch -a); do
+            BRANCH=$(echo $BRANCH | sed 's/remotes\/bianco\///') #  remove remote/bianco/ prefix so this checks out to local branch
+            echo $BRANCH
+            git checkout $BRANCH
+          done
+      - run: |
+        git push --all origin
+        git push --tags origin
+  sync_issues:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Syncing issues"
