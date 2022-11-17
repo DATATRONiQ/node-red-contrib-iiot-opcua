@@ -110,7 +110,7 @@
     "gulp-uglify": "^3.0.2",
     "jest": "^27.5.1",
     "jest-coverage-badges": "^1.1.2",
-    "jsdoc": "^3.6.10",
+    "jsdoc": "^4.0.0",
     "nock": "^13.2.4",
     "node-red": "^2.2.2",
     "node-red-node-test-helper": "^0.2.7",
