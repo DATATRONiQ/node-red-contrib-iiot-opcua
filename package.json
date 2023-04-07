@@ -13,7 +13,7 @@
     "stately.js": "1.3.0",
     "underscore": "1.13.3",
     "rimraf": "3.0.2",
-    "vm2": "3.9.9"
+    "vm2": "3.9.15"
   },
   "keywords": [
     "node-red",
